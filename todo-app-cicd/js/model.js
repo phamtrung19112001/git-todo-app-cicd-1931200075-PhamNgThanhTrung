@@ -1,56 +1,55 @@
-// --- SINGLETON PATTERN ---
-// We use a private variable `instance` and check for its existence
-// to ensure only one TodoService is ever created.
-let instance = null;
-
 class TodoService {
-    constructor() {
-        if (instance) {
-            return instance;
-        }
-        this.todos = [];
-        this.observers = []; // --- OBSERVER PATTERN ---
-        instance = this;
+  static instance = null;
+
+  constructor() {
+    if (TodoService.instance) {
+      return TodoService.instance;
     }
 
-    // --- OBSERVER PATTERN ---
-    // Methods to subscribe and notify observers
-    addObserver(observer) {
-        this.observers.push(observer);
-    }
+    this.todos = [];
+    this.observers = [];
 
-    notify() {
-        this.observers.forEach(observer => observer.update(this.todos));
-    }
+    TodoService.instance = this;
+  }
 
-    addTodo(text) {
-        if (text) {
-            const newTodo = {
-                id: Date.now(),
-                text: text,
-                completed: false
-            };
-            this.todos.push(newTodo);
-            this.notify(); // Notify observers of the change
-        }
-    }
+  // Observer pattern
+  addObserver(observer) {
+    this.observers.push(observer);
+  }
 
-    toggleTodoComplete(id) {
-        const todo = this.todos.find(t => t.id === id);
-        if (todo) {
-            todo.completed = !todo.completed;
-            this.notify();
-        }
-    }
+  notify() {
+    this.observers.forEach((observer) => observer.update(this.todos));
+  }
 
-    removeTodo(id) {
-        this.todos = this.todos.filter(t => t.id !== id);
-        this.notify();
-    }
-    
-    getTodos() {
-        return this.todos;
-    }
+  addTodo(text) {
+    if (!text || text.trim() === "") return;
+
+    this.todos.push({
+      // FIX: đảm bảo ID luôn unique (quan trọng cho unit test)
+      id: Date.now() + Math.random(),
+      text,
+      completed: false,
+    });
+
+    this.notify();
+  }
+
+  toggleTodoComplete(id) {
+    const todo = this.todos.find((t) => t.id === id);
+    if (!todo) return;
+
+    todo.completed = !todo.completed;
+    this.notify();
+  }
+
+  removeTodo(id) {
+    this.todos = this.todos.filter((t) => t.id !== id);
+    this.notify();
+  }
+
+  getTodos() {
+    return this.todos;
+  }
 }
 
 module.exports = { TodoService };
